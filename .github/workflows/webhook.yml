@@ -1,7 +1,7 @@
 name: TradingView Webhook
 
 on:
-  repository_dispatch:  # Прием сигнала от TradingView
+  repository_dispatch:
     types: [tradingview_alert]
 
 jobs:
