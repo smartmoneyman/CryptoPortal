@@ -1,0 +1,44 @@
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top, #1a1f4d, #050712 70%);
+  color: #fff;
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: linear-gradient(180deg, #0b0f2a, #07091a);
+  padding: 20px 14px;
+}
+
+.sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #6aa8ff;
+}
+
+.sidebar a {
+  display: block;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  color: #cbd5ff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.sidebar a.active,
+.sidebar a:hover {
+  background: rgba(106, 168, 255, 0.15);
+  color: #fff;
+}
+
+.main {
+  flex: 1;
+  padding: 24px;
+}
