@@ -1,1 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Portfolio</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+<h1>💼 Portfolio</h1>
+
+<button onclick="addDemo()">➕ Add demo position</button>
+
+<div id="list"></div>
+
+<script>
+function load() {
+  return JSON.parse(localStorage.getItem('portfolioExcel')) || { portfolio: [], history: [] };
+}
+function save(data) {
+  localStorage.setItem('portfolioExcel', JSON.stringify(data));
+}
+function render() {
+  const d = load();
+  document.getElementById('list').innerHTML = d.portfolio.map((p,i)=>`
+    <div>
+      <b>${p.symbol}</b> qty:${p.quantity} entry:${p.entry} current:${p.current}
+      <button onclick="closePos(${i})">Close</button>
+    </div>
+  `).join('');
+}
+function addDemo() {
+  const d = load();
+  d.portfolio.push({
+    symbol:'PIPPIN',
+    entry:1,
+    current:5,
+    quantity:10,
+    entryDate:new Date().toISOString()
+  });
+  save(d); render();
+}
+function closePos(i){
+  const d = load();
+  const p = d.portfolio[i];
+  const pnl = (p.current-p.entry)*p.quantity;
+  d.history.push({
+    symbol:p.symbol,
+    entryPrice:p.entry,
+    exitPrice:p.current,
+    qty:p.quantity,
+    openTime:p.entryDate,
+    closeTime:new Date().toISOString(),
+    pnlUsd:pnl,
+    pnlPct:(p.current-p.entry)/p.entry*100
+  });
+  d.portfolio.splice(i,1);
+  save(d); render();
+}
+render();
+</script>
+</body>
+</html>
 
