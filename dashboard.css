@@ -1,0 +1,85 @@
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: radial-gradient(circle at top, #1b1f3b, #070914);
+  color: #fff;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+button {
+  background: #3b82f6;
+  color: #fff;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 20px;
+}
+
+.kpi {
+  background: linear-gradient(180deg, #1a1f3a, #11142a);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.kpi.danger {
+  border: 1px solid #ef4444;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+.panel {
+  background: #11152f;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.panel.alert {
+  border: 1px solid #ef4444;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+}
+
+.pos { color: #22c55e; }
+.neg { color: #ef4444; }
+
+a {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+a.danger {
+  color: #ef4444;
+}
+
+.market li, #signals li {
+  margin: 8px 0;
+}
+
+#signals .buy { color: #22c55e; }
+#signals .fix { color: #facc15; }
+#signals .sell { color: #ef4444; }
