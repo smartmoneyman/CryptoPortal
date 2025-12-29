@@ -640,6 +640,8 @@
         let autoUpdateInterval = null;
         let currentSellIndex = null;
 
+        const PORTFOLIO_STORAGE_KEY = 'crypto_portfolio_v1';
+
         // Загрузка данных
         window.onload = function() {
             loadData();
@@ -649,8 +651,8 @@
 
         function loadData() {
             // Данные из Bybit (52 позиции)
-            const PORTFOLIO_STORAGE_KEY = 'crypto_portfolio_v1';
             const BYBIT_DATA = [
+
                 {
                                 "symbol": "PIPPIN",
                                 "source": "Bybit",
