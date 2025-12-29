@@ -1,0 +1,32 @@
+<body>
+  <aside id="sidebar">
+    <button data-view="dashboard">Dashboard</button>
+    <button data-view="portfolio">Portfolio</button>
+    <button data-view="signals">Signals</button>
+  </aside>
+
+  <main id="view"></main>
+
+  <script type="module">
+    import { renderDashboard } from './views/dashboard.js';
+    import { renderPortfolio } from './views/portfolio.js';
+    import { renderSignals } from './views/signals.js заставили';
+
+    const view = document.getElementById('view');
+
+    function navigate(page) {
+      if (page === 'dashboard') renderDashboard(view);
+      if (page === 'portfolio') renderPortfolio(view);
+      if (page === 'signals') renderSignals(view);
+    }
+
+    document.querySelectorAll('[data-view]').forEach(b =>
+      b.onclick = () => navigate(b.dataset.view)
+    );
+
+    window.addEventListener('state:update', () => navigate(current));
+
+    let current = 'dashboard';
+    navigate(current);
+  </script>
+</body>
