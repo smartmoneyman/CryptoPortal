@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Crypto Dashboard</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Inter, Segoe UI, Arial, sans-serif;
+    background: #0f1220;
+    color: #fff;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+h1 {
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    background: linear-gradient(180deg, #1a1f3c, #141832);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.card .label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 6px;
+}
+
+.card .value {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.positive { color: #32d583; }
+.negative { color: #ff6b6b; }
+
+.footer {
+    margin-top: 24px;
+    font-size: 12px;
+    opacity: 0.6;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>📊 Dashboard</h1>
+
+    <div class="grid">
+        <div class="card"><div class="label">Positions</div><div class="value" id="positions">—</div></div>
+        <div class="card"><div class="label">Invested</div><div class="value" id="invested">—</div></div>
+        <div class="card"><div class="label">Current Value</div><div class="value" id="current">—</div></div>
+        <div class="card"><div class="label">Unrealized P&L</div><div class="value" id="unrealized">—</div></div>
+        <div class="card"><div class="label">Realized P&L</div><div class="value" id="realized">—</div></div>
+        <div class="card"><div class="label">Total P&L</div><div class="value" id="totalPnl">—</div></div>
+        <div class="card"><div class="label">ROI</div><div class="value" id="roi">—</div></div>
+        <div class="card"><div class="label">Portfolio Risk</div><div class="value" id="risk">—</div></div>
+    </div>
+
+    <div class="footer" id="updated">—</div>
+</div>
+
+<script>
+const STORAGE_KEY = 'crypto_portfolio_v1';
+const SETTINGS = { deposit: 10000 };
+
+function loadDashboard() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+        alert('Портфель не найден');
+        return;
+    }
+
+    const data = JSON.parse(raw);
+    const portfolio = data.portfolio || [];
+    const history = data.history || [];
+
+    let invested = 0;
+    let current = 0;
+
+    portfolio.forEach(c => {
+        invested += c.entry * c.quantity;
+        current += c.current * c.quantity;
+    });
+
+    const unrealized = current - invested;
+    const realized = history.reduce((s, h) => s + (h.pnl || 0), 0);
+    const total = unrealized + realized;
+    const roi = invested > 0 ? (total / invested) * 100 : 0;
+    const risk = invested / SETTINGS.deposit * 100;
+
+    set('positions', portfolio.length);
+    set('invested', `$${invested.toFixed(2)}`);
+    set('current', `$${current.toFixed(2)}`);
+    set('unrealized', format(unrealized));
+    set('realized', format(realized));
+    set('totalPnl', format(total));
+    set('roi', `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%`);
+    set('risk', `${risk.toFixed(1)}%`);
+
+    document.getElementById('updated').textContent =
+        `Last update: ${new Date(data.updatedAt).toLocaleString()}`;
+}
+
+function set(id, value) {
+    document.getElementById(id).textContent = value;
+}
+
+function format(v) {
+    return `<span class="${v >= 0 ? 'positive' : 'negative'}">
+        ${v >= 0 ? '+' : ''}$${v.toFixed(2)}
+    </span>`;
+}
+
+window.onload = loadDashboard;
+</script>
+</body>
+</html>
