@@ -649,6 +649,7 @@
 
         function loadData() {
             // Данные из Bybit (52 позиции)
+            const PORTFOLIO_STORAGE_KEY = 'crypto_portfolio_v1';
             const BYBIT_DATA = [
                 {
                                 "symbol": "PIPPIN",
@@ -1289,7 +1290,7 @@
                 console.log('✅ Данные Bybit загружены!');
             } else {
                 // ПОСЛЕДУЮЩИЕ ЗАГРУЗКИ - из localStorage
-                const saved = localStorage.getItem('portfolioExcel');
+                const saved = localStorage.getItem(PORTFOLIO_STORAGE_KEY);
                 if (saved) {
                     const data = JSON.parse(saved);
                     portfolio = data.portfolio || [];
@@ -1303,9 +1304,11 @@
         }
 
         function savePortfolio() {
-            localStorage.setItem('portfolioExcel', JSON.stringify({
-                portfolio: portfolio,
-                history: history
+            localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify({
+              version: '1.0',
+              updatedAt: new Date().toISOString(),
+              portfolio: portfolio,
+              history: history
             }));
             showStatus('💾 Сохранено');
         }
