@@ -1,90 +1,354 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dashboard | Crypto Command Center</title>
-  <link rel="stylesheet" href="dashboard.css" />
+<meta charset="UTF-8" />
+<title>Dashboard | Crypto Command Center</title>
+
+<style>
+/* ===== BASE ===== */
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: radial-gradient(circle at top, #1b1f3b, #070914);
+  color: #fff;
+}
+
+h1, h2, h3 {
+  margin: 0 0 12px;
+}
+
+button {
+  background: #4f7cff;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.danger {
+  background: #ef4444;
+}
+
+button.fix {
+  background: #22c55e;
+}
+
+/* ===== LAYOUT ===== */
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+aside {
+  width: 240px;
+  background: #0b0f2a;
+  padding: 20px;
+}
+
+aside h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+aside a {
+  display: block;
+  color: #c7d2fe;
+  text-decoration: none;
+  margin: 8px 0;
+}
+
+main {
+  flex: 1;
+  padding: 24px;
+}
+
+/* ===== DASHBOARD ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  background: linear-gradient(180deg, #1a1f3a, #11142a);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.stat .label {
+  opacity: 0.7;
+  font-size: 13px;
+}
+
+.stat .value {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.pos { color: #22c55e; }
+.neg { color: #ef4444; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  background: #11152f;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.card.danger {
+  border: 1px solid #ef4444;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+  gap: 8px;
+}
+
+.row b {
+  flex: 1;
+}
+
+.market li,
+.signals li {
+  margin: 8px 0;
+}
+
+.signals .buy { color: #22c55e; }
+.signals .fix { color: #facc15; }
+.signals .close { color: #ef4444; }
+
+.footer {
+  opacity: 0.5;
+  font-size: 12px;
+  margin-top: 20px;
+}
+</style>
 </head>
+
 <body>
 
-<header class="topbar">
-  <h1>Dashboard</h1>
-  <button id="refreshBtn">Обновить данные</button>
-</header>
+<div class="app">
+  <!-- ===== SIDEBAR ===== -->
+  <aside>
+    <h2>Crypto Hub</h2>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="portfolio.html">Portfolio</a>
+    <a href="#">Signals</a>
+    <a href="#">Watchlist</a>
+    <a href="#">Analytics</a>
+  </aside>
 
-<section class="kpi-grid">
-  <div class="kpi">
-    <span>Депозит</span>
-    <strong id="kpi-deposit">$0</strong>
-  </div>
-  <div class="kpi">
-    <span>Текущая стоимость</span>
-    <strong id="kpi-current">$0</strong>
-  </div>
-  <div class="kpi">
-    <span>Реализовано</span>
-    <strong id="kpi-realized">$0</strong>
-  </div>
-  <div class="kpi danger">
-    <span>Риск портфеля</span>
-    <strong id="kpi-risk">0%</strong>
-  </div>
-</section>
+  <!-- ===== CONTENT ===== -->
+  <main>
+    <div class="header">
+      <h1>Dashboard</h1>
+      <button onclick="init()">Обновить данные</button>
+    </div>
 
-<section class="grid-2">
-  <div class="panel">
-    <h2>🚀 ТОП прибыльные</h2>
-    <table id="top-winners">
-      <thead>
-        <tr>
-          <th>Монета</th>
-          <th>Цена</th>
-          <th>P&L %</th>
-          <th>Действие</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <section class="stats" id="stats"></section>
 
-  <div class="panel alert">
-    <h2>⚠️ Критичные позиции</h2>
-    <table id="critical">
-      <thead>
-        <tr>
-          <th>Монета</th>
-          <th>Цена</th>
-          <th>P&L %</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</section>
+    <section class="grid">
+      <div class="card" id="topProfit"></div>
+      <div class="card danger" id="critical"></div>
+      <div class="card" id="market"></div>
+      <div class="card" id="signals"></div>
+    </section>
 
-<section class="grid-2">
-  <div class="panel">
-    <h2>🌍 Market Overview</h2>
+    <div class="footer" id="updated"></div>
+  </main>
+</div>
+
+<script>
+/* ===== CONFIG ===== */
+const STORAGE_KEY = 'crypto_portfolio_v1';
+
+/* ===== LOAD ===== */
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return { portfolio: [], history: [] };
+  return JSON.parse(raw);
+}
+
+/* ===== NORMALIZE ===== */
+function normalize(p) {
+  const invested = p.entry * p.quantity;
+  const currentValue = p.current * p.quantity;
+  const pnlUsd = currentValue - invested;
+  const pnlPct = invested ? (pnlUsd / invested) * 100 : 0;
+
+  return {
+    ...p,
+    invested,
+    currentValue,
+    pnlUsd,
+    pnlPct
+  };
+}
+
+/* ===== STATS ===== */
+function renderStats(list, history) {
+  const invested = list.reduce((s,p)=>s+p.invested,0);
+  const current = list.reduce((s,p)=>s+p.currentValue,0);
+  const unreal = current - invested;
+  const realized = history.reduce((s,h)=>s+(h.pnl||0),0);
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat">
+      <div class="label">Вложено</div>
+      <div class="value">$${invested.toFixed(2)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Текущая стоимость</div>
+      <div class="value">$${current.toFixed(2)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Нереализовано</div>
+      <div class="value ${unreal>=0?'pos':'neg'}">$${unreal.toFixed(2)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Реализовано</div>
+      <div class="value ${realized>=0?'pos':'neg'}">$${realized.toFixed(2)}</div>
+    </div>
+  `;
+}
+
+/* ===== TOP PROFIT ===== */
+function renderTop(list) {
+  const top = list.filter(p => p.pnlPct >= 50).slice(0,5);
+
+  document.getElementById('topProfit').innerHTML = `
+    <h3>🚀 ТОП прибыльные</h3>
+    ${top.length ? top.map(p=>`
+      <div class="row">
+        <b>${p.symbol}</b>
+        <span class="pos">+${p.pnlPct.toFixed(1)}%</span>
+        <button class="fix" onclick="fix('${p.symbol}',25)">FIX 25%</button>
+      </div>
+    `).join('') : '<i>Нет прибыльных</i>'}
+  `;
+}
+
+/* ===== CRITICAL ===== */
+function renderCritical(list) {
+  const bad = list.filter(p => p.pnlPct <= -50 || (p.stop && p.current <= p.stop));
+
+  document.getElementById('critical').innerHTML = `
+    <h3>⚠️ Критичные позиции</h3>
+    ${bad.length ? bad.map(p=>`
+      <div class="row">
+        <b>${p.symbol}</b>
+        <span class="neg">${p.pnlPct.toFixed(1)}%</span>
+        <button class="danger" onclick="closePos('${p.symbol}')">CLOSE</button>
+      </div>
+    `).join('') : '<i>Нет критичных</i>'}
+  `;
+}
+
+/* ===== MARKET ===== */
+function renderMarket() {
+  document.getElementById('market').innerHTML = `
+    <h3>🌍 Market Overview</h3>
     <ul class="market">
-      <li>BTC: <strong>$94,250</strong></li>
-      <li>ETH: <strong>$3,410</strong></li>
-      <li>Fear & Greed: <strong>52</strong></li>
-      <li>BTC Dominance: <strong>58.3%</strong></li>
+      <li>BTC: $94,250</li>
+      <li>ETH: $3,410</li>
+      <li>Fear & Greed: 52</li>
+      <li>BTC Dominance: 58.3%</li>
     </ul>
-  </div>
+  `;
+}
 
-  <div class="panel">
-    <h2>🔥 Горячие сигналы</h2>
-    <ul id="signals">
-      <li class="buy">RENDER — BUY</li>
-      <li class="buy">FTM — BUY</li>
-      <li class="fix">PIPPIN — FIX +816%</li>
-      <li class="sell">TNSR — CLOSE</li>
-    </ul>
-  </div>
-</section>
+/* ===== SIGNALS ===== */
+function renderSignals(list) {
+  const sigs = list.map(p => {
+    if (p.pnlPct >= 100) return `<li class="fix">${p.symbol} — FIX</li>`;
+    if (p.pnlPct <= -50) return `<li class="close">${p.symbol} — CLOSE</li>`;
+    return `<li class="buy">${p.symbol} — HOLD</li>`;
+  });
 
-<script src="dashboard.js"></script>
+  document.getElementById('signals').innerHTML = `
+    <h3>🔥 Горячие сигналы</h3>
+    <ul class="signals">${sigs.join('')}</ul>
+  `;
+}
+
+/* ===== ACTIONS ===== */
+function fix(symbol, pct) {
+  const data = loadData();
+  const p = data.portfolio.find(x=>x.symbol===symbol);
+  if (!p) return;
+
+  const qty = p.quantity * pct / 100;
+  const pnl = (p.current - p.entry) * qty;
+
+  p.quantity -= qty;
+
+  data.history.push({
+    date: new Date().toISOString(),
+    symbol,
+    type: 'fix',
+    qty,
+    pnl
+  });
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  init();
+}
+
+function closePos(symbol) {
+  const data = loadData();
+  const idx = data.portfolio.findIndex(p=>p.symbol===symbol);
+  if (idx === -1) return;
+
+  const p = data.portfolio[idx];
+  const pnl = (p.current - p.entry) * p.quantity;
+
+  data.history.push({
+    date: new Date().toISOString(),
+    symbol,
+    type: 'close',
+    qty: p.quantity,
+    pnl
+  });
+
+  data.portfolio.splice(idx,1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  init();
+}
+
+/* ===== INIT ===== */
+function init() {
+  const { portfolio, history } = loadData();
+  const list = portfolio.map(normalize);
+
+  renderStats(list, history);
+  renderTop(list);
+  renderCritical(list);
+  renderMarket();
+  renderSignals(list);
+
+  document.getElementById('updated').textContent =
+    'Last update: ' + new Date().toLocaleString();
+}
+
+init();
+</script>
+
 </body>
 </html>
