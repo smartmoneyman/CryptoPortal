@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Crypto Hub — Dashboard v2.4</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root{
+  --bg:#0b0f1e;
+  --panel:#121836;
+  --panel2:#0f1430;
+  --line:#1f2755;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --green:#2ecc71;
+  --red:#ff4d4d;
+  --yellow:#ffb020;
+  --blue:#4f7cff;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
+  background:radial-gradient(circle at top,#121a45,#070b1a 60%);
+  color:var(--text);
+}
+
+/* ===== LAYOUT ===== */
+.app{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  min-height:100vh;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  background:linear-gradient(180deg,#0e1433,#080c1e);
+  border-right:1px solid var(--line);
+  padding:16px;
+}
+.sidebar h2{
+  font-size:16px;
+  margin:0 0 16px;
+}
+.menu a{
+  display:block;
+  padding:10px 12px;
+  border-radius:10px;
+  color:var(--text);
+  text-decoration:none;
+  margin-bottom:6px;
+}
+.menu a.active,
+.menu a:hover{
+  background:#1a245a;
+}
+
+/* ===== MAIN ===== */
+.main{
+  padding:20px;
+}
+
+/* KPI */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:16px;
+  margin-bottom:24px;
+}
+.kpi{
+  background:linear-gradient(180deg,#141c4d,#0d1333);
+  border-radius:14px;
+  padding:14px;
+}
+.kpi .label{
+  font-size:11px;
+  color:var(--muted);
+}
+.kpi .value{
+  font-size:22px;
+  font-weight:700;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+}
+.card{
+  background:linear-gradient(180deg,#141c4d,#0d1333);
+  border-radius:16px;
+  padding:16px;
+  border:1px solid #1f2a60;
+}
+.card h3{
+  margin:0 0 12px;
+  font-size:14px;
+}
+
+/* ROWS */
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid #1f2a60;
+}
+.row:last-child{border-bottom:none}
+.symbol{
+  font-weight:600;
+}
+.muted{color:var(--muted)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:6px;
+}
+.btn{
+  border:none;
+  border-radius:8px;
+  padding:6px 10px;
+  cursor:pointer;
+  font-size:11px;
+  color:#000;
+}
+.btn.fix{background:var(--yellow)}
+.btn.close{background:var(--red); color:#fff}
+
+/* EMPTY */
+.empty{
+  color:var(--muted);
+  font-size:12px;
+  padding:10px 0;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>🚀 Crypto Hub</h2>
+    <nav class="menu">
+      <a class="active">Dashboard</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a>Signals</a>
+      <a>History</a>
+      <a>Settings</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- KPI -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="label">Invested</div>
+        <div class="value" id="kpiInvested">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Current Value</div>
+        <div class="value" id="kpiValue">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Unrealized P&L</div>
+        <div class="value" id="kpiPnl">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Open Positions</div>
+        <div class="value" id="kpiCount">0</div>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid">
+
+      <!-- TOP PROFIT -->
+      <div class="card">
+        <h3>🏆 Top Profitable</h3>
+        <div id="topProfit"></div>
+      </div>
+
+      <!-- CRITICAL -->
+      <div class="card">
+        <h3>⚠️ Critical Positions</h3>
+        <div id="critical"></div>
+      </div>
+
+      <!-- HOT ACTIONS -->
+      <div class="card">
+        <h3>🔥 Hot Actions</h3>
+        <div id="hotActions"></div>
+      </div>
+
+      <!-- MARKET SNAPSHOT -->
+      <div class="card">
+        <h3>📊 Portfolio Snapshot</h3>
+        <div id="snapshot"></div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ===== CONSTANTS ===== */
+const STORAGE_KEY = 'crypto_portfolio_v1';
+const LIMITS = {
+  TOP:5,
+  CRITICAL:6,
+  HOT:6
+};
+
+/* ===== LOAD DATA ===== */
+function loadPortfolio(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return [];
+  try{
+    return JSON.parse(raw).portfolio || [];
+  }catch(e){
+    return [];
+  }
+}
+
+/* ===== CALC ===== */
+function enrich(p){
+  const invested = p.entry * p.quantity;
+  const value = p.current * p.quantity;
+  const pnl = value - invested;
+  const pnlPct = invested ? pnl / invested * 100 : 0;
+  return {...p, invested, value, pnl, pnlPct};
+}
+
+/* ===== RENDER ===== */
+function render(){
+  const data = loadPortfolio().map(enrich);
+
+  // KPI
+  const invested = data.reduce((s,x)=>s+x.invested,0);
+  const value = data.reduce((s,x)=>s+x.value,0);
+  const pnl = value - invested;
+
+  document.getElementById('kpiInvested').textContent = '$'+invested.toFixed(0);
+  document.getElementById('kpiValue').textContent = '$'+value.toFixed(0);
+  document.getElementById('kpiPnl').textContent =
+    (pnl>=0?'+':'')+'$'+pnl.toFixed(0);
+  document.getElementById('kpiPnl').className =
+    'value '+(pnl>=0?'green':'red');
+  document.getElementById('kpiCount').textContent = data.length;
+
+  // TOP PROFIT
+  const top = data
+    .filter(x=>x.pnlPct>0)
+    .sort((a,b)=>b.pnlPct-a.pnlPct)
+    .slice(0,LIMITS.TOP);
+
+  renderList('topProfit', top, x=>`
+    <div class="row">
+      <div>
+        <div class="symbol">${x.symbol}</div>
+        <div class="muted">+${x.pnlPct.toFixed(1)}%</div>
+      </div>
+      <div class="green">+$${x.pnl.toFixed(0)}</div>
+    </div>
+  `);
+
+  // CRITICAL
+  const critical = data
+    .filter(x=>x.pnlPct<-25)
+    .sort((a,b)=>a.pnlPct-b.pnlPct)
+    .slice(0,LIMITS.CRITICAL);
+
+  renderList('critical', critical, x=>`
+    <div class="row">
+      <div>
+        <div class="symbol">${x.symbol}</div>
+        <div class="muted">${x.pnlPct.toFixed(1)}%</div>
+      </div>
+      <div class="red">$${x.pnl.toFixed(0)}</div>
+    </div>
+  `);
+
+  // HOT ACTIONS
+  const hot = data
+    .filter(x=>x.pnlPct>50 || x.pnlPct<-30)
+    .slice(0,LIMITS.HOT);
+
+  renderList('hotActions', hot, x=>`
+    <div class="row">
+      <div>
+        <div class="symbol">${x.symbol}</div>
+        <div class="muted">${x.pnlPct.toFixed(1)}%</div>
+      </div>
+      <div class="actions">
+        <button class="btn fix" onclick="fix('${x.symbol}',25)">FIX</button>
+        <button class="btn close" onclick="closePos('${x.symbol}')">CLOSE</button>
+      </div>
+    </div>
+  `);
+
+  // SNAPSHOT
+  document.getElementById('snapshot').innerHTML = `
+    <div class="row"><span>Positive</span><span class="green">${data.filter(x=>x.pnl>0).length}</span></div>
+    <div class="row"><span>Negative</span><span class="red">${data.filter(x=>x.pnl<0).length}</span></div>
+    <div class="row"><span>Best</span><span>${top[0]?.symbol||'—'}</span></div>
+  `;
+}
+
+function renderList(id, arr, tpl){
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  if(arr.length===0){
+    el.innerHTML = `<div class="empty">Нет данных</div>`;
+    return;
+  }
+  arr.forEach(x=>el.insertAdjacentHTML('beforeend',tpl(x)));
+}
+
+/* ===== ACTIONS ===== */
+function fix(symbol, pct){
+  const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  const p = raw.portfolio.find(x=>x.symbol===symbol);
+  if(!p) return;
+  p.quantity *= (1 - pct/100);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+  render();
+}
+
+function closePos(symbol){
+  const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  raw.portfolio = raw.portfolio.filter(x=>x.symbol!==symbol);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+  render();
+}
+
+/* INIT */
+render();
+</script>
+
+</body>
+</html>
