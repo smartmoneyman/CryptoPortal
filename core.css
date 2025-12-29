@@ -1,0 +1,32 @@
+:root{
+  --bg:#0f1116;
+  --panel:#12151c;
+  --line:#242a36;
+  --text:#eaeaea;
+  --accent:#00d4ff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
+}
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+.main{
+  flex:1;
+  margin-left:260px;
+  display:flex;
+  flex-direction:column;
+}
+
+.content{
+  padding:24px;
+}
