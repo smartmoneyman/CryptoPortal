@@ -1,1 +1,41 @@
+[
+  {
+    "id": "cg-woo-1655",
+    "type": "IDEA",
+    "source": "CoinGlass",
+    "symbol": "WOO",
+    "score": 85,
+    "scoreDelta": 1,
+    "trend": "Bearish",
+    "trendPct": 29,
+    "bias": "Longs > Shorts",
+    "riskNote": "dump risk",
+    "metrics": {
+      "price24h": 5.12,
+      "volume1h": 31.45,
+      "oi1h": 17.15,
+      "funding": 0.01,
+      "longShort": 283.02,
+      "rsi": [68.6, 69.1]
+    },
+    "action": "WATCH",
+    "chart": "https://www.tradingview.com/chart/?symbol=BYBIT:WOOUSDT"
+  },
+  {
+    "id": "td-lyn-1h",
+    "type": "SETUP",
+    "source": "TradingDashboard",
+    "symbol": "LYNUSDT",
+    "timeframe": "1h",
+    "price": 0.15464,
+    "direction": "LONG",
+    "confirmation": {
+      "ttm150": "bullish",
+      "ttm500": "bullish",
+      "priceVsMA": "above"
+    },
+    "action": "CONSIDER_ENTRY",
+    "chart": "https://www.tradingview.com/chart/?symbol=BYBIT:LYNUSDT"
+  }
+]
 
