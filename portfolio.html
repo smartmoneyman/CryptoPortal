@@ -1,63 +1,1854 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Portfolio</title>
-  <link rel="stylesheet" href="./css/styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Manager - Excel Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+            background: #f0f0f0;
+            padding: 10px;
+        }
+
+        .excel-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .toolbar {
+            background: #f3f3f3;
+            border-bottom: 1px solid #d4d4d4;
+            padding: 8px 15px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar-btn {
+            padding: 6px 12px;
+            border: 1px solid #adadad;
+            background: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
+            cursor: pointer;
+            font-size: 12px;
+            border-radius: 2px;
+            transition: all 0.1s;
+        }
+
+        .toolbar-btn:hover {
+            background: linear-gradient(to bottom, #e5e5e5 0%, #d4d4d4 100%);
+        }
+
+        .toolbar-btn:active {
+            background: #d4d4d4;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 20px;
+            background: #d4d4d4;
+            margin: 0 5px;
+        }
+
+        .status-bar {
+            background: #f3f3f3;
+            border-top: 1px solid #d4d4d4;
+            padding: 4px 15px;
+            font-size: 11px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .worksheet {
+            overflow-x: auto;
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        th {
+            background: #e7e6e6;
+            color: #333;
+            font-weight: 600;
+            padding: 6px 8px;
+            border: 1px solid #d4d4d4;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            border: 1px solid #d4d4d4;
+            padding: 4px 8px;
+            background: white;
+        }
+
+        tbody tr:hover td {
+            background: #f5f5f5;
+        }
+        
+        /* Исправление для кликабельных элементов */
+        td input,
+        td select,
+        td button {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Excel цветовое кодирование */
+        .input-cell {
+            color: #0000FF;
+            font-weight: 600;
+        }
+
+        .formula-cell {
+            color: #000000;
+        }
+
+        .external-cell {
+            color: #FF0000;
+            font-weight: 600;
+        }
+
+        .link-cell {
+            color: #008000;
+            font-weight: 600;
+        }
+
+        /* Редактируемые ячейки */
+        .editable {
+            background: white;
+            border: 1px solid #d4d4d4;
+            padding: 2px 4px;
+            width: 100%;
+            font-family: inherit;
+            font-size: inherit;
+            text-align: right;
+            cursor: text;
+            position: relative;
+            z-index: 5;
+        }
+
+        .editable:focus {
+            outline: 2px solid #217346;
+            background: #fff;
+            z-index: 20;
+        }
+        
+        .editable:hover {
+            border-color: #217346;
+            cursor: pointer;
+        }
+        
+        select.editable {
+            cursor: pointer;
+            padding: 3px 2px;
+        }
+        
+        input[type="date"].editable {
+            cursor: pointer;
+        }
+
+        /* Заголовок портфеля */
+        .portfolio-header {
+            background: linear-gradient(to bottom, #4472C4 0%, #2E5AAC 100%);
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 3px solid #2E5AAC;
+        }
+
+        /* Сводка */
+        .summary-section {
+            padding: 15px;
+            background: #F2F2F2;
+            border-bottom: 2px solid #d4d4d4;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 10px;
+            border: 1px solid #d4d4d4;
+            border-radius: 2px;
+        }
+
+        .summary-label {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .summary-value.positive {
+            color: #008000;
+        }
+
+        .summary-value.negative {
+            color: #FF0000;
+        }
+
+        /* Прогресс-бары до уровней */
+        .level-progress {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 2px;
+        }
+
+        .level-progress-bar {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .level-progress-bar.level-1 { background: #FFD700; }
+        .level-progress-bar.level-2 { background: #FFA500; }
+        .level-progress-bar.level-3 { background: #32CD32; }
+        .level-progress-bar.level-moon { background: #FF1493; }
+
+        /* Индикаторы уровней */
+        .level-indicators {
+            display: flex;
+            gap: 4px;
+            margin-top: 3px;
+        }
+
+        .level-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            border: 1px solid #ccc;
+        }
+
+        .level-dot.active {
+            background: #32CD32;
+            border-color: #228B22;
+            box-shadow: 0 0 4px rgba(50, 205, 50, 0.6);
+        }
+
+        .level-dot.warning {
+            background: #FFA500;
+            border-color: #FF8C00;
+        }
+
+        .level-dot.danger {
+            background: #FF0000;
+            border-color: #DC143C;
+        }
+
+        /* Кнопки действий в ячейках */
+        .cell-btn {
+            padding: 2px 8px;
+            border: 1px solid #adadad;
+            background: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
+            cursor: pointer;
+            font-size: 10px;
+            border-radius: 2px;
+            margin: 0 2px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .cell-btn:hover {
+            background: linear-gradient(to bottom, #e5e5e5 0%, #d4d4d4 100%);
+            z-index: 15;
+        }
+        
+        .cell-btn:active {
+            background: #d4d4d4;
+            transform: translateY(1px);
+        }
+
+        .cell-btn.sell {
+            background: linear-gradient(to bottom, #FFD700 0%, #FFA500 100%);
+            border-color: #FF8C00;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .cell-btn.close {
+            background: linear-gradient(to bottom, #FF6B6B 0%, #EE5A5A 100%);
+            border-color: #DC143C;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Номера строк */
+        .row-number {
+            background: #e7e6e6;
+            color: #333;
+            font-weight: 600;
+            text-align: center;
+            width: 40px;
+            border-right: 2px solid #d4d4d4;
+        }
+
+        /* Итоговая строка */
+        .total-row {
+            background: #FFF2CC !important;
+            font-weight: bold;
+        }
+
+        .total-row td {
+            border-top: 2px solid #000;
+            border-bottom: 3px double #000;
+        }
+
+        /* Условное форматирование */
+        .cf-positive {
+            background: #C6EFCE !important;
+            color: #006100;
+        }
+
+        .cf-negative {
+            background: #FFC7CE !important;
+            color: #9C0006;
+        }
+
+        .cf-warning {
+            background: #FFEB9C !important;
+            color: #9C6500;
+        }
+
+        /* Заметки (как в Excel) */
+        .cell-note {
+            position: relative;
+        }
+
+        .cell-note::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 6px 6px 0;
+            border-color: transparent #FF0000 transparent transparent;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            border: 1px solid #888;
+            width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            pointer-events: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(to bottom, #4472C4 0%, #2E5AAC 100%);
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .form-row {
+            margin-bottom: 12px;
+        }
+
+        .form-row label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .form-row input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #d4d4d4;
+            font-size: 12px;
+        }
+
+        /* Риск-метрики */
+        .risk-meter {
+            height: 20px;
+            background: linear-gradient(to right, #32CD32 0%, #FFD700 50%, #FF0000 100%);
+            border: 1px solid #ccc;
+            position: relative;
+            margin-top: 4px;
+        }
+
+        .risk-pointer {
+            position: absolute;
+            top: -2px;
+            width: 2px;
+            height: 24px;
+            background: #000;
+            box-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 768px) {
+            table {
+                font-size: 9px;
+            }
+            th, td {
+                padding: 3px 4px;
+            }
+            .toolbar-btn {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+        }
+
+        /* Подсветка ячеек при наведении (как в Excel) */
+        td:hover {
+            box-shadow: inset 0 0 0 1px #217346;
+        }
+        
+        /* Но не подсвечивать ячейки с интерактивными элементами */
+        td:has(button):hover,
+        td:has(select):hover,
+        td:has(input):hover {
+            box-shadow: none;
+        }
+
+        /* Выделенная ячейка */
+        .selected-cell {
+            outline: 2px solid #217346;
+            background: #E7F4EE !important;
+        }
+    </style>
 </head>
 <body>
-<h1>💼 Portfolio</h1>
+    <div class="excel-container">
+        <!-- Заголовок -->
+        <div class="portfolio-header">
+            📊 CRYPTO PORTFOLIO MANAGER - Risk Management Tool
+        </div>
 
-<button onclick="addDemo()">➕ Add demo position</button>
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="toolbar-btn" onclick="updateAllPrices()">🔄 Обновить цены</button>
+            <button class="toolbar-btn" onclick="addNewRow()">➕ Добавить монету</button>
+            <div class="toolbar-separator"></div>
+            <button class="toolbar-btn" onclick="savePortfolio()">💾 Сохранить</button>
+            <button class="toolbar-btn" onclick="exportToJSON()">📤 Экспорт</button>
+            <button class="toolbar-btn" onclick="importFromJSON()">📥 Импорт</button>
+            <div class="toolbar-separator"></div>
+            <button class="toolbar-btn" onclick="showHistory()">📜 История</button>
+            <button class="toolbar-btn" onclick="showSettings()">⚙️ Настройки</button>
+            <div class="toolbar-separator"></div>
+            <label style="font-size: 11px; display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="autoUpdate" onchange="toggleAutoUpdate()">
+                Автообновление (5 мин)
+            </label>
+            <span id="lastUpdate" style="margin-left: 15px; font-size: 11px; color: #666;"></span>
+        </div>
 
-<div id="list"></div>
+        <!-- Сводка -->
+        <div class="summary-section">
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Депозит</div>
+                    <div class="summary-value" id="totalDeposit">$10,000</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Вложено</div>
+                    <div class="summary-value" id="totalInvested">$0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Текущая стоимость</div>
+                    <div class="summary-value" id="currentValue">$0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Реализовано</div>
+                    <div class="summary-value positive" id="realizedPnl">$0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Нереализовано</div>
+                    <div class="summary-value" id="unrealizedPnl">$0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Общая P&L</div>
+                    <div class="summary-value" id="totalPnl">$0</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">ROI</div>
+                    <div class="summary-value" id="roi">0%</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Риск портфеля</div>
+                    <div class="summary-value" id="portfolioRisk">0%</div>
+                </div>
+            </div>
+        </div>
 
-<script>
-function load() {
-  return JSON.parse(localStorage.getItem('portfolioExcel')) || { portfolio: [], history: [] };
-}
-function save(data) {
-  localStorage.setItem('portfolioExcel', JSON.stringify(data));
-}
-function render() {
-  const d = load();
-  document.getElementById('list').innerHTML = d.portfolio.map((p,i)=>`
-    <div>
-      <b>${p.symbol}</b> qty:${p.quantity} entry:${p.entry} current:${p.current}
-      <button onclick="closePos(${i})">Close</button>
+        <!-- Таблица -->
+        <div class="worksheet">
+            <table id="portfolioTable">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th style="width: 80px;">Монета</th>
+                        <th style="width: 100px;">Источник</th>
+                        <th style="width: 60px;">Score</th>
+                        <th style="width: 90px;">Дата входа</th>
+                        <th style="width: 90px;">Цена входа</th>
+                        <th style="width: 90px;">Количество</th>
+                        <th style="width: 90px;">Вложено $</th>
+                        <th style="width: 90px;">Цена сейчас</th>
+                        <th style="width: 90px;">Стоимость $</th>
+                        <th style="width: 70px;">P&L %</th>
+                        <th style="width: 90px;">P&L $</th>
+                        <th style="width: 90px;">Стоп $</th>
+                        <th style="width: 70px;">Риск %</th>
+                        <th style="width: 150px;">До уровней</th>
+                        <th style="width: 120px;">Действия</th>
+                        <th style="width: 40px;">ℹ️</th>
+                        <th style="width: 40px;">🗑️</th>
+                    </tr>
+                </thead>
+                <tbody id="portfolioBody">
+                    <!-- Генерируется JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span>Готово | Монет: <span id="coinCount">0</span></span>
+            <span>Средний ROI: <span id="avgROI">0%</span></span>
+            <span id="updateStatus">Автообновление: выкл</span>
+        </div>
     </div>
-  `).join('');
-}
-function addDemo() {
-  const d = load();
-  d.portfolio.push({
-    symbol:'PIPPIN',
-    entry:1,
-    current:5,
-    quantity:10,
-    entryDate:new Date().toISOString()
-  });
-  save(d); render();
-}
-function closePos(i){
-  const d = load();
-  const p = d.portfolio[i];
-  const pnl = (p.current-p.entry)*p.quantity;
-  d.history.push({
-    symbol:p.symbol,
-    entryPrice:p.entry,
-    exitPrice:p.current,
-    qty:p.quantity,
-    openTime:p.entryDate,
-    closeTime:new Date().toISOString(),
-    pnlUsd:pnl,
-    pnlPct:(p.current-p.entry)/p.entry*100
-  });
-  d.portfolio.splice(i,1);
-  save(d); render();
-}
-render();
-</script>
+
+    <!-- Modal: Sell -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Продажа: <span id="sellCoinName"></span></span>
+                <span class="modal-close" onclick="closeSellModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <label>Цена продажи ($)</label>
+                    <input type="number" id="sellPrice" step="0.0001">
+                </div>
+                <div class="form-row">
+                    <label>Количество</label>
+                    <input type="number" id="sellQty" step="1">
+                </div>
+                <div class="form-row">
+                    <label>Быстрый выбор</label>
+                    <select onchange="quickSell(this.value)">
+                        <option value="">Выберите</option>
+                        <option value="20">20% (Уровень 1)</option>
+                        <option value="25">25% (Уровень 2)</option>
+                        <option value="30">30% (Уровень 3)</option>
+                        <option value="50">50%</option>
+                        <option value="100">100% (Закрыть)</option>
+                    </select>
+                </div>
+                <div id="sellPreview" style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #d4d4d4;">
+                    <!-- Preview -->
+                </div>
+                <button class="toolbar-btn sell" onclick="executeSell()" style="width: 100%; padding: 10px;">
+                    💰 ПРОДАТЬ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Coin Info -->
+    <div id="coinInfoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Детали сигнала: <span id="infoCoinName"></span></span>
+                <span class="modal-close" onclick="closeCoinInfoModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="coinInfoBody">
+                <!-- Динамически заполняется -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Настройки
+        const SETTINGS = {
+            deposit: 10000,
+            riskPerTrade: 2, // %
+            levels: [
+                { pct: 50, sell: 20, name: 'Уровень 1' },
+                { pct: 100, sell: 25, name: 'Уровень 2' },
+                { pct: 200, sell: 30, name: 'Уровень 3' },
+                { pct: 400, sell: 25, name: 'Moon' }
+            ]
+        };
+
+        let portfolio = [];
+        let history = [];
+        let autoUpdateInterval = null;
+        let currentSellIndex = null;
+
+        // Загрузка данных
+        window.onload = function() {
+            loadData();
+            renderTable();
+            updateSummary();
+        };
+
+        function loadData() {
+            // Данные из Bybit (52 позиции)
+            const BYBIT_DATA = [
+                {
+                                "symbol": "PIPPIN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.0777,
+                                "quantity": 41.0,
+                                "stop": 0.04662,
+                                "current": 0.42756,
+                                "notes": "Leverage: 10x | P&L: +816.9% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "ICNT",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.3754,
+                                "quantity": 26.0,
+                                "stop": 0.4083,
+                                "current": 0.5319,
+                                "notes": "Leverage: 10x | P&L: +292.4% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "LYN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.12106,
+                                "quantity": 82.0,
+                                "stop": 0.072636,
+                                "current": 0.16801,
+                                "notes": "Leverage: 10x | P&L: +277.6% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "PIEVERSE",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.454,
+                                "quantity": 26.0,
+                                "stop": 0.2724,
+                                "current": 0.55783,
+                                "notes": "Leverage: 10x | P&L: +184.6% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "SQD",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.08699,
+                                "quantity": 114.0,
+                                "stop": 0.052194,
+                                "current": 0.09595,
+                                "notes": "Leverage: 10x | P&L: +92.6% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "PARTI",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.09764,
+                                "quantity": 116.0,
+                                "stop": 0.058584,
+                                "current": 0.10534,
+                                "notes": "Leverage: 10x | P&L: +72.5% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "ESPORTS",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.39183,
+                                "quantity": 12.0,
+                                "stop": 0.235098,
+                                "current": 0.43635,
+                                "notes": "Leverage: 10x | P&L: +101.1% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "BEAT",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 2.5332,
+                                "quantity": 1.0,
+                                "stop": 1.51992,
+                                "current": 3.0312,
+                                "notes": "Leverage: 10x | P&L: +162.9% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "KITE",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.08894,
+                                "quantity": 112.0,
+                                "stop": 0.08574,
+                                "current": 0.09153,
+                                "notes": "Leverage: 10x | P&L: +28.1% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "MYX",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 3.4461,
+                                "quantity": 3.0,
+                                "stop": 2.06766,
+                                "current": 3.5161,
+                                "notes": "Leverage: 10x | P&L: +19.7% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "GMT",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.01719,
+                                "quantity": 290.0,
+                                "stop": 0.010314,
+                                "current": 0.01715,
+                                "notes": "Leverage: 10x | P&L: -2.3% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "STBL",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.05824,
+                                "quantity": 115.0,
+                                "stop": 0.034944,
+                                "current": 0.05755,
+                                "notes": "Leverage: 10x | P&L: -11.9% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "VVV",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 1.6847,
+                                "quantity": 4.0,
+                                "stop": 1.01082,
+                                "current": 1.6597,
+                                "notes": "Leverage: 10x | P&L: -14.9% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "BCH",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 610.5,
+                                "quantity": 0.02,
+                                "stop": 366.3,
+                                "current": 603.6,
+                                "notes": "Leverage: 10x | P&L: -11.3% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "FARTCOIN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.2719,
+                                "quantity": 18.3,
+                                "stop": 0.2144,
+                                "current": 0.2938,
+                                "notes": "Leverage: 10x | P&L: -29.7% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "SAPIEN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.12404,
+                                "quantity": 75.0,
+                                "stop": 0.074424,
+                                "current": 0.12117,
+                                "notes": "Leverage: 10x | P&L: -23.4% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "CFX",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.07465,
+                                "quantity": 133.0,
+                                "stop": 0.04479,
+                                "current": 0.07087,
+                                "notes": "Leverage: 10x | P&L: -52.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "T",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.010044,
+                                "quantity": 490.0,
+                                "stop": 0.008453,
+                                "current": 0.008936,
+                                "notes": "Leverage: 10x | P&L: -122.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "MEW",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.0009124,
+                                "quantity": 10900.0,
+                                "stop": 0.0008335,
+                                "current": 0.000848,
+                                "notes": "Leverage: 10x | P&L: -75.2% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "KAS",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.05289,
+                                "quantity": 90.0,
+                                "stop": 0.031734,
+                                "current": 0.04394,
+                                "notes": "Leverage: 10x | P&L: -201.5% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "NTRN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.03008,
+                                "quantity": 332.0,
+                                "stop": 0.018048,
+                                "current": 0.02762,
+                                "notes": "Leverage: 10x | P&L: -44.3% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "EVAA",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.9943,
+                                "quantity": 10.0,
+                                "stop": 0.59658,
+                                "current": 0.9091,
+                                "notes": "Leverage: 10x | P&L: -92.7% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "ETH",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 3029.2,
+                                "quantity": 0.01,
+                                "stop": 1817.52,
+                                "current": 2932.11,
+                                "notes": "Leverage: 10x | P&L: -32.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "SOLV",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.01645,
+                                "quantity": 615.0,
+                                "stop": 0.00987,
+                                "current": 0.01451,
+                                "notes": "Leverage: 10x | P&L: -132.3% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "CTC",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.3274,
+                                "quantity": 15.0,
+                                "stop": 0.19644,
+                                "current": 0.24774,
+                                "notes": "Leverage: 10x | P&L: -317.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "INIT",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.10112,
+                                "quantity": 98.0,
+                                "stop": 0.060672,
+                                "current": 0.08641,
+                                "notes": "Leverage: 10x | P&L: -168.5% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "XNO",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.9432,
+                                "quantity": 8.0,
+                                "stop": 0.56592,
+                                "current": 0.7075,
+                                "notes": "Leverage: 10x | P&L: -165.7% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "ORCA",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 1.4437,
+                                "quantity": 5.6,
+                                "stop": 0.86622,
+                                "current": 1.1058,
+                                "notes": "Leverage: 10x | P&L: -302.0% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "COAI",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.6694,
+                                "quantity": 7.0,
+                                "stop": 0.40164,
+                                "current": 0.3917,
+                                "notes": "Leverage: 10x | P&L: -697.2% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "KAITO",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.7376,
+                                "quantity": 10.0,
+                                "stop": 0.44256,
+                                "current": 0.5302,
+                                "notes": "Leverage: 10x | P&L: -386.3% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "SOLAYER",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.2983,
+                                "quantity": 21.0,
+                                "stop": 0.17898,
+                                "current": 0.171,
+                                "notes": "Leverage: 10x | P&L: -732.9% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "GUN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.01535,
+                                "quantity": 651.0,
+                                "stop": 0.00921,
+                                "current": 0.011022,
+                                "notes": "Leverage: 10x | P&L: -387.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "LIGHT",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.7814,
+                                "quantity": 12.0,
+                                "stop": 0.46884,
+                                "current": 0.5215,
+                                "notes": "Leverage: 10x | P&L: -491.1% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "ARC",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.05327,
+                                "quantity": 187.0,
+                                "stop": 0.031962,
+                                "current": 0.03658,
+                                "notes": "Leverage: 10x | P&L: -450.4% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "UNI",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 7.081,
+                                "quantity": 3.0,
+                                "stop": 4.2486,
+                                "current": 6.028,
+                                "notes": "Leverage: 10x | P&L: -172.9% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "ZEN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 15.449,
+                                "quantity": 0.6,
+                                "stop": 9.2694,
+                                "current": 9.048,
+                                "notes": "Leverage: 10x | P&L: -696.7% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "BANK",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.07115,
+                                "quantity": 180.0,
+                                "stop": 0.04269,
+                                "current": 0.04968,
+                                "notes": "Leverage: 10x | P&L: -426.2% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "KERNEL",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.11832,
+                                "quantity": 84.0,
+                                "stop": 0.070992,
+                                "current": 0.0715,
+                                "notes": "Leverage: 10x | P&L: -645.2% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "F",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.012113,
+                                "quantity": 825.0,
+                                "stop": 0.0072678,
+                                "current": 0.007249,
+                                "notes": "Leverage: 10x | P&L: -661.0% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "RAYDIUM",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 1.5604,
+                                "quantity": 6.4,
+                                "stop": 0.93624,
+                                "current": 0.9229,
+                                "notes": "Leverage: 10x | P&L: -680.4% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "BANANAS31",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.005887,
+                                "quantity": 1700.0,
+                                "stop": 0.0035322,
+                                "current": 0.003471,
+                                "notes": "Leverage: 10x | P&L: -685.6% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "BTR",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.0466,
+                                "quantity": 320.0,
+                                "stop": 0.02796,
+                                "current": 0.0332,
+                                "notes": "Leverage: 10x | P&L: -200.5% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "LA",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.5171,
+                                "quantity": 19.3,
+                                "stop": 0.31026,
+                                "current": 0.2892,
+                                "notes": "Leverage: 10x | P&L: -775.6% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "GPS",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.008581,
+                                "quantity": 1169.0,
+                                "stop": 0.0051486,
+                                "current": 0.004797,
+                                "notes": "Leverage: 10x | P&L: -775.1% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "RESOLV",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.13138,
+                                "quantity": 84.0,
+                                "stop": 0.078828,
+                                "current": 0.07385,
+                                "notes": "Leverage: 10x | P&L: -766.7% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "XAN",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.03206,
+                                "quantity": 310.0,
+                                "stop": 0.019236,
+                                "current": 0.01647,
+                                "notes": "Leverage: 10x | P&L: -930.3% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "CLANKER",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 75.8,
+                                "quantity": 0.13,
+                                "stop": 45.48,
+                                "current": 29.8,
+                                "notes": "Leverage: 10x | P&L: -1505.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "APR",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.26898,
+                                "quantity": 48.0,
+                                "stop": 0.161388,
+                                "current": 0.13243,
+                                "notes": "Leverage: 10x | P&L: -1010.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "HEMI",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.02819,
+                                "quantity": 512.0,
+                                "stop": 0.016914,
+                                "current": 0.01534,
+                                "notes": "Leverage: 10x | P&L: -822.7% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "TA",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.04214,
+                                "quantity": 350.0,
+                                "stop": 0.025284,
+                                "current": 0.0232,
+                                "notes": "Leverage: 10x | P&L: -404.9% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "TNSR",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.24453,
+                                "quantity": 40.8,
+                                "stop": 0.146718,
+                                "current": 0.07991,
+                                "notes": "Leverage: 10x | P&L: -2004.8% | Imported: 29.12.2024"
+                },
+                {
+                                "symbol": "TRUTH",
+                                "source": "Bybit",
+                                "score": "",
+                                "entryDate": "2024-12-29",
+                                "reason": "Bybit Futures",
+                                "entry": 0.018187,
+                                "quantity": 1360.0,
+                                "stop": 0.0109122,
+                                "current": 0.010264,
+                                "notes": "Leverage: 10x | P&L: -759.8% | Imported: 29.12.2024"
+                }
+];
+            
+            // Проверяем флаг первой загрузки
+            const bybitLoaded = localStorage.getItem('bybitDataLoaded_v1');
+            
+            if (!bybitLoaded) {
+                // ПЕРВАЯ ЗАГРУЗКА - используем данные Bybit
+                console.log('🚀 Загружаем 52 позиции из Bybit...');
+                portfolio = BYBIT_DATA;
+                history = [];
+                savePortfolio();
+                localStorage.setItem('bybitDataLoaded_v1', 'true');
+                console.log('✅ Данные Bybit загружены!');
+            } else {
+                // ПОСЛЕДУЮЩИЕ ЗАГРУЗКИ - из localStorage
+                const saved = localStorage.getItem('portfolioExcel');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    portfolio = data.portfolio || [];
+                    history = data.history || [];
+                    console.log(`📊 Загружено ${portfolio.length} позиций`);
+                } else {
+                    portfolio = BYBIT_DATA;
+                    history = [];
+                }
+            }
+        }
+
+        function savePortfolio() {
+            localStorage.setItem('portfolioExcel', JSON.stringify({
+                portfolio: portfolio,
+                history: history
+            }));
+            showStatus('💾 Сохранено');
+        }
+
+        function showStatus(msg) {
+            const status = document.getElementById('updateStatus');
+            const original = status.textContent;
+            status.textContent = msg;
+            status.style.color = '#32CD32';
+            setTimeout(() => {
+                status.textContent = original;
+                status.style.color = '';
+            }, 2000);
+        }
+
+        // Рендеринг таблицы
+        function renderTable() {
+            const tbody = document.getElementById('portfolioBody');
+            tbody.innerHTML = '';
+
+            portfolio.forEach((coin, idx) => {
+                const invested = coin.entry * coin.quantity;
+                const currentVal = coin.current * coin.quantity;
+                const pnlPct = coin.current > 0 ? ((coin.current - coin.entry) / coin.entry) * 100 : 0;
+                const pnlUsd = currentVal - invested;
+                const riskPct = (invested / SETTINGS.deposit) * 100;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="row-number">${idx + 1}</td>
+                    <td><input type="text" class="editable input-cell" value="${coin.symbol}" onchange="updateCoin(${idx}, 'symbol', this.value.toUpperCase())" style="text-transform: uppercase;"></td>
+                    <td>
+                        <select class="editable input-cell" onchange="updateCoin(${idx}, 'source', this.value)" style="width: 100%; padding: 3px 2px; text-align: left; cursor: pointer;">
+                            <option value="CoinGlass" ${coin.source === 'CoinGlass' ? 'selected' : ''}>CoinGlass</option>
+                            <option value="TradingView" ${coin.source === 'TradingView' ? 'selected' : ''}>TradingView</option>
+                            <option value="WatchList" ${coin.source === 'WatchList' ? 'selected' : ''}>WatchList</option>
+                            <option value="Manual" ${coin.source === 'Manual' ? 'selected' : ''}>Manual</option>
+                            <option value="Telegram" ${coin.source === 'Telegram' ? 'selected' : ''}>Telegram</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="editable input-cell" value="${coin.score || ''}" onchange="updateCoin(${idx}, 'score', this.value)" style="text-align: center;"></td>
+                    <td><input type="date" class="editable input-cell" value="${coin.entryDate || ''}" onchange="updateCoin(${idx}, 'entryDate', this.value)" style="font-size: 10px; cursor: pointer;"></td>
+                    <td><input type="number" class="editable input-cell" value="${coin.entry}" step="0.0001" onchange="updateCoin(${idx}, 'entry', this.value)" style="text-align: right;"></td>
+                    <td><input type="number" class="editable input-cell" value="${coin.quantity}" step="1" onchange="updateCoin(${idx}, 'quantity', this.value)" style="text-align: right;"></td>
+                    <td class="formula-cell" style="text-align: right;">$${invested.toFixed(2)}</td>
+                    <td class="external-cell" style="text-align: right;">${coin.current > 0 ? '$' + coin.current.toFixed(4) : '—'}</td>
+                    <td class="formula-cell" style="text-align: right;">$${currentVal.toFixed(2)}</td>
+                    <td class="${pnlPct >= 0 ? 'cf-positive' : 'cf-negative'}" style="text-align: right; font-weight: bold;">${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%</td>
+                    <td class="${pnlUsd >= 0 ? 'cf-positive' : 'cf-negative'}" style="text-align: right; font-weight: bold;">${pnlUsd >= 0 ? '+' : ''}$${pnlUsd.toFixed(2)}</td>
+                    <td><input type="number" class="editable input-cell" value="${coin.stop}" step="0.0001" onchange="updateCoin(${idx}, 'stop', this.value)" style="text-align: right;"></td>
+                    <td class="formula-cell" style="text-align: right;">${riskPct.toFixed(1)}%</td>
+                    <td>${renderLevelProgress(coin, pnlPct)}</td>
+                    <td>${renderActions(idx, coin, pnlPct)}</td>
+                    <td><button class="cell-btn" onclick="showCoinInfo(${idx})" title="Детали сигнала">ℹ️</button></td>
+                    <td><button class="cell-btn" onclick="deleteCoin(${idx})" title="Удалить">🗑️</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Итоговая строка
+            addTotalRow(tbody);
+            
+            document.getElementById('coinCount').textContent = portfolio.length;
+        }
+
+        function renderLevelProgress(coin, pnlPct) {
+            let html = '<div class="level-indicators">';
+            
+            SETTINGS.levels.forEach((level, idx) => {
+                let className = 'level-dot';
+                if (pnlPct >= level.pct) className += ' active';
+                else if (pnlPct >= level.pct * 0.8) className += ' warning';
+                html += `<div class="${className}" title="${level.name}: +${level.pct}%"></div>`;
+            });
+            
+            html += '</div>';
+
+            // Прогресс до следующего уровня
+            let nextLevel = SETTINGS.levels.find(l => pnlPct < l.pct);
+            if (nextLevel && coin.current > 0) {
+                const progress = Math.min(100, (pnlPct / nextLevel.pct) * 100);
+                const levelClass = nextLevel.pct === 50 ? 'level-1' : 
+                                 nextLevel.pct === 100 ? 'level-2' :
+                                 nextLevel.pct === 200 ? 'level-3' : 'level-moon';
+                html += `<div class="level-progress"><div class="level-progress-bar ${levelClass}" style="width: ${progress}%"></div></div>`;
+                html += `<div style="font-size: 9px; color: #666; margin-top: 2px;">${nextLevel.name}: ${(nextLevel.pct - pnlPct).toFixed(1)}%</div>`;
+            }
+
+            return html;
+        }
+
+        function renderActions(idx, coin, pnlPct) {
+            if (coin.current <= coin.stop && coin.current > 0) {
+                return `<button class="cell-btn close" onclick="showSellModal(${idx})">⛔ СТОП</button>`;
+            }
+
+            const level = SETTINGS.levels.find(l => pnlPct >= l.pct && pnlPct < (SETTINGS.levels.find(ll => ll.pct > l.pct)?.pct || Infinity));
+            
+            if (level) {
+                return `<button class="cell-btn sell" onclick="showSellModal(${idx})">💰 ${level.sell}%</button>`;
+            }
+
+            return `<button class="cell-btn" onclick="showSellModal(${idx})">💰 Продать</button>`;
+        }
+
+        function addTotalRow(tbody) {
+            let totalInvested = 0;
+            let totalCurrent = 0;
+
+            portfolio.forEach(coin => {
+                totalInvested += coin.entry * coin.quantity;
+                totalCurrent += coin.current * coin.quantity;
+            });
+
+            const totalPnl = totalCurrent - totalInvested;
+            const totalPnlPct = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+
+            const row = document.createElement('tr');
+            row.className = 'total-row';
+            row.innerHTML = `
+                <td class="row-number"></td>
+                <td colspan="6" style="text-align: right; font-weight: bold;">ИТОГО:</td>
+                <td style="text-align: right;">$${totalInvested.toFixed(2)}</td>
+                <td></td>
+                <td style="text-align: right;">$${totalCurrent.toFixed(2)}</td>
+                <td class="${totalPnlPct >= 0 ? 'cf-positive' : 'cf-negative'}" style="text-align: right;">${totalPnlPct >= 0 ? '+' : ''}${totalPnlPct.toFixed(1)}%</td>
+                <td class="${totalPnl >= 0 ? 'cf-positive' : 'cf-negative'}" style="text-align: right;">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}</td>
+                <td colspan="6"></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function updateCoin(idx, field, value) {
+            if (field === 'symbol' || field === 'source' || field === 'score' || field === 'entryDate' || field === 'reason' || field === 'notes') {
+                portfolio[idx][field] = value;
+            } else {
+                portfolio[idx][field] = parseFloat(value) || 0;
+            }
+            savePortfolio();
+            renderTable();
+            updateSummary();
+        }
+
+        function addNewRow() {
+            portfolio.push({
+                symbol: 'NEW',
+                source: 'Manual',
+                score: '',
+                entryDate: new Date().toISOString().split('T')[0],
+                reason: '',
+                entry: 0,
+                quantity: 0,
+                stop: 0,
+                current: 0,
+                notes: ''
+            });
+            renderTable();
+            savePortfolio();
+        }
+
+        function showCoinInfo(idx) {
+            console.log('showCoinInfo вызвана для индекса:', idx);
+            const coin = portfolio[idx];
+            console.log('Данные монеты:', coin);
+            
+            if (!coin) {
+                console.error('Монета не найдена!');
+                return;
+            }
+            
+            const pos = calculatePosition(coin);
+            
+            document.getElementById('infoCoinName').textContent = coin.symbol;
+            
+            const daysHeld = coin.entryDate ? Math.floor((new Date() - new Date(coin.entryDate)) / (1000 * 60 * 60 * 24)) : 0;
+            
+            document.getElementById('coinInfoBody').innerHTML = `
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="margin-bottom: 10px;">📊 Данные входа</h4>
+                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #e9ecef;"><td style="padding: 5px;"><strong>Источник сигнала:</strong></td><td style="padding: 5px;">${coin.source || '—'}</td></tr>
+                        <tr style="border-bottom: 1px solid #e9ecef;"><td style="padding: 5px;"><strong>Score:</strong></td><td style="padding: 5px;">${coin.score || '—'}</td></tr>
+                        <tr style="border-bottom: 1px solid #e9ecef;"><td style="padding: 5px;"><strong>Дата входа:</strong></td><td style="padding: 5px;">${coin.entryDate ? new Date(coin.entryDate).toLocaleDateString('ru-RU') : '—'}</td></tr>
+                        <tr style="border-bottom: 1px solid #e9ecef;"><td style="padding: 5px;"><strong>Дней в позиции:</strong></td><td style="padding: 5px;">${daysHeld} ${daysHeld === 1 ? 'день' : daysHeld < 5 ? 'дня' : 'дней'}</td></tr>
+                        <tr><td style="padding: 5px;"><strong>Причина входа:</strong></td><td style="padding: 5px;">${coin.reason || '—'}</td></tr>
+                    </table>
+                </div>
+
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="margin-bottom: 10px;">💰 Текущая позиция</h4>
+                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #d4e9ff;"><td style="padding: 5px;"><strong>Цена входа:</strong></td><td style="padding: 5px;">$${coin.entry.toFixed(4)}</td></tr>
+                        <tr style="border-bottom: 1px solid #d4e9ff;"><td style="padding: 5px;"><strong>Количество:</strong></td><td style="padding: 5px;">${coin.quantity.toLocaleString()}</td></tr>
+                        <tr style="border-bottom: 1px solid #d4e9ff;"><td style="padding: 5px;"><strong>Вложено:</strong></td><td style="padding: 5px;">$${pos.totalInvested.toFixed(2)}</td></tr>
+                        <tr style="border-bottom: 1px solid #d4e9ff;"><td style="padding: 5px;"><strong>Текущая цена:</strong></td><td style="padding: 5px;">${coin.current > 0 ? '$' + coin.current.toFixed(4) : '—'}</td></tr>
+                        <tr style="border-bottom: 1px solid #d4e9ff;"><td style="padding: 5px;"><strong>Стоимость:</strong></td><td style="padding: 5px;">$${pos.currentValue.toFixed(2)}</td></tr>
+                        <tr><td style="padding: 5px;"><strong>P&L:</strong></td><td style="padding: 5px; color: ${pos.pnlUsd >= 0 ? '#008000' : '#FF0000'}; font-weight: bold;">${pos.pnlUsd >= 0 ? '+' : ''}$${pos.pnlUsd.toFixed(2)} (${pos.pnlPct >= 0 ? '+' : ''}${pos.pnlPct.toFixed(1)}%)</td></tr>
+                    </table>
+                </div>
+
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-bottom: 10px;">⚠️ Управление рисками</h4>
+                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid #ffe69c;"><td style="padding: 5px;"><strong>Стоп-лосс:</strong></td><td style="padding: 5px;">$${coin.stop.toFixed(4)}</td></tr>
+                        <tr style="border-bottom: 1px solid #ffe69c;"><td style="padding: 5px;"><strong>Риск от депозита:</strong></td><td style="padding: 5px;">${((pos.totalInvested / SETTINGS.deposit) * 100).toFixed(1)}%</td></tr>
+                        <tr><td style="padding: 5px;"><strong>Расстояние до стопа:</strong></td><td style="padding: 5px;">${coin.current > 0 ? ((1 - coin.stop / coin.current) * 100).toFixed(1) + '%' : '—'}</td></tr>
+                    </table>
+                </div>
+
+                ${coin.notes ? `
+                <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                    <h4 style="margin-bottom: 10px;">📝 Заметки</h4>
+                    <p style="font-size: 12px; white-space: pre-wrap;">${coin.notes}</p>
+                </div>
+                ` : ''}
+
+                <div style="margin-top: 15px;">
+                    <button class="toolbar-btn" onclick="editCoinNotes(${idx})" style="width: 100%; padding: 8px;">✏️ Редактировать заметки</button>
+                </div>
+            `;
+            
+            document.getElementById('coinInfoModal').style.display = 'block';
+        }
+
+        function calculatePosition(coin) {
+            const totalInvested = coin.entry * coin.quantity;
+            const currentValue = coin.current * coin.quantity;
+            const pnlPct = coin.current > 0 ? ((coin.current - coin.entry) / coin.entry) * 100 : 0;
+            const pnlUsd = currentValue - totalInvested;
+
+            return {
+                totalInvested,
+                currentValue,
+                pnlPct,
+                pnlUsd
+            };
+        }
+
+        function closeCoinInfoModal() {
+            document.getElementById('coinInfoModal').style.display = 'none';
+        }
+
+        function editCoinNotes(idx) {
+            const coin = portfolio[idx];
+            const newNotes = prompt('Заметки:', coin.notes || '');
+            if (newNotes !== null) {
+                coin.notes = newNotes;
+                savePortfolio();
+                showCoinInfo(idx); // Обновить окно
+            }
+        }
+
+        function deleteCoin(idx) {
+            if (confirm(`Удалить ${portfolio[idx].symbol}?`)) {
+                portfolio.splice(idx, 1);
+                renderTable();
+                updateSummary();
+                savePortfolio();
+            }
+        }
+
+        // Обновление цен
+        async function updateAllPrices() {
+            showStatus('🔄 Обновление...');
+            
+            for (let coin of portfolio) {
+                if (coin.symbol === 'NEW') continue;
+                const price = await getBybitPrice(coin.symbol);
+                if (price > 0) coin.current = price;
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            renderTable();
+            updateSummary();
+            savePortfolio();
+            
+            const now = new Date().toLocaleString('ru-RU');
+            document.getElementById('lastUpdate').textContent = `Обновлено: ${now}`;
+            showStatus('✅ Цены обновлены');
+        }
+
+        async function getBybitPrice(symbol) {
+            try {
+                const ticker = symbol.toUpperCase() + 'USDT';
+                const response = await fetch(`https://api.bybit.com/v5/market/tickers?category=linear&symbol=${ticker}`);
+                const data = await response.json();
+                
+                if (data.retCode === 0 && data.result?.list?.length > 0) {
+                    return parseFloat(data.result.list[0].lastPrice);
+                }
+                return 0;
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        function toggleAutoUpdate() {
+            const checkbox = document.getElementById('autoUpdate');
+            const status = document.getElementById('updateStatus');
+
+            if (checkbox.checked) {
+                status.textContent = 'Автообновление: вкл (5 мин)';
+                status.style.color = '#32CD32';
+                autoUpdateInterval = setInterval(updateAllPrices, 5 * 60 * 1000);
+                updateAllPrices();
+            } else {
+                status.textContent = 'Автообновление: выкл';
+                status.style.color = '';
+                if (autoUpdateInterval) {
+                    clearInterval(autoUpdateInterval);
+                }
+            }
+        }
+
+        // Обновление сводки
+        function updateSummary() {
+            let totalInvested = 0;
+            let currentValue = 0;
+            let portfolioRisk = 0;
+
+            portfolio.forEach(coin => {
+                const invested = coin.entry * coin.quantity;
+                totalInvested += invested;
+                currentValue += coin.current * coin.quantity;
+                portfolioRisk += invested;
+            });
+
+            const unrealizedPnl = currentValue - totalInvested;
+            const realizedPnl = history.reduce((sum, h) => sum + (h.pnl || 0), 0);
+            const totalPnl = unrealizedPnl + realizedPnl;
+            const roi = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+            const riskPct = (portfolioRisk / SETTINGS.deposit) * 100;
+
+            document.getElementById('totalDeposit').textContent = '$' + SETTINGS.deposit.toLocaleString();
+            document.getElementById('totalInvested').textContent = '$' + totalInvested.toFixed(2);
+            document.getElementById('currentValue').textContent = '$' + currentValue.toFixed(2);
+            
+            const realizedEl = document.getElementById('realizedPnl');
+            realizedEl.textContent = (realizedPnl >= 0 ? '+' : '') + '$' + realizedPnl.toFixed(2);
+            realizedEl.className = 'summary-value ' + (realizedPnl >= 0 ? 'positive' : 'negative');
+
+            const unrealizedEl = document.getElementById('unrealizedPnl');
+            unrealizedEl.textContent = (unrealizedPnl >= 0 ? '+' : '') + '$' + unrealizedPnl.toFixed(2);
+            unrealizedEl.className = 'summary-value ' + (unrealizedPnl >= 0 ? 'positive' : 'negative');
+
+            const totalPnlEl = document.getElementById('totalPnl');
+            totalPnlEl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2);
+            totalPnlEl.className = 'summary-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
+
+            const roiEl = document.getElementById('roi');
+            roiEl.textContent = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
+            roiEl.className = 'summary-value ' + (roi >= 0 ? 'positive' : 'negative');
+
+            const riskEl = document.getElementById('portfolioRisk');
+            riskEl.textContent = riskPct.toFixed(1) + '%';
+            riskEl.className = 'summary-value ' + (riskPct > 80 ? 'negative' : riskPct > 50 ? '' : 'positive');
+
+            document.getElementById('avgROI').textContent = roi.toFixed(1) + '%';
+        }
+
+        // Продажа
+        function showSellModal(idx) {
+            currentSellIndex = idx;
+            const coin = portfolio[idx];
+            
+            document.getElementById('sellCoinName').textContent = coin.symbol;
+            document.getElementById('sellPrice').value = coin.current.toFixed(4);
+            document.getElementById('sellQty').value = '';
+            updateSellPreview();
+            
+            document.getElementById('sellModal').style.display = 'block';
+        }
+
+        function closeSellModal() {
+            document.getElementById('sellModal').style.display = 'none';
+            currentSellIndex = null;
+        }
+
+        function quickSell(pct) {
+            if (!pct || currentSellIndex === null) return;
+            const coin = portfolio[currentSellIndex];
+            const qty = Math.floor(coin.quantity * (pct / 100));
+            document.getElementById('sellQty').value = qty;
+            updateSellPreview();
+        }
+
+        function updateSellPreview() {
+            if (currentSellIndex === null) return;
+
+            const coin = portfolio[currentSellIndex];
+            const price = parseFloat(document.getElementById('sellPrice').value) || 0;
+            const qty = parseFloat(document.getElementById('sellQty').value) || 0;
+
+            if (!price || !qty) {
+                document.getElementById('sellPreview').innerHTML = '<p>Введите данные</p>';
+                return;
+            }
+
+            const amount = price * qty;
+            const cost = coin.entry * qty;
+            const pnl = amount - cost;
+            const pnlPct = (pnl / cost) * 100;
+
+            document.getElementById('sellPreview').innerHTML = `
+                <strong>Предпросмотр:</strong><br>
+                Продаете: ${qty} ${coin.symbol}<br>
+                По цене: $${price.toFixed(4)}<br>
+                Получите: $${amount.toFixed(2)}<br>
+                Прибыль: <span style="color: ${pnl >= 0 ? '#008000' : '#FF0000'}; font-weight: bold;">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%)</span><br>
+                Останется: ${coin.quantity - qty} ${coin.symbol}
+            `;
+        }
+
+        document.getElementById('sellPrice')?.addEventListener('input', updateSellPreview);
+        document.getElementById('sellQty')?.addEventListener('input', updateSellPreview);
+
+        function executeSell() {
+            if (currentSellIndex === null) return;
+
+            const coin = portfolio[currentSellIndex];
+            const price = parseFloat(document.getElementById('sellPrice').value);
+            const qty = parseFloat(document.getElementById('sellQty').value);
+
+            if (!price || !qty || qty > coin.quantity) {
+                alert('Проверьте данные!');
+                return;
+            }
+
+            const amount = price * qty;
+            const cost = coin.entry * qty;
+            const pnl = amount - cost;
+
+            // Добавляем в историю
+            history.push({
+                date: new Date().toISOString(),
+                symbol: coin.symbol,
+                type: 'sell',
+                price: price,
+                quantity: qty,
+                amount: amount,
+                pnl: pnl
+            });
+
+            // Уменьшаем количество
+            coin.quantity -= qty;
+
+            // Если продали все - удаляем
+            if (coin.quantity <= 0) {
+                portfolio.splice(currentSellIndex, 1);
+            }
+
+            savePortfolio();
+            renderTable();
+            updateSummary();
+            closeSellModal();
+
+            alert(`✅ Продано ${qty} ${coin.symbol}\nПрибыль: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`);
+        }
+
+        // Экспорт/Импорт
+        function exportToJSON() {
+            const data = {
+                portfolio: portfolio,
+                history: history,
+                settings: SETTINGS,
+                date: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'portfolio_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+        }
+
+        function importFromJSON() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        portfolio = data.portfolio || [];
+                        history = data.history || [];
+                        savePortfolio();
+                        renderTable();
+                        updateSummary();
+                        alert('✅ Импорт выполнен');
+                    } catch (err) {
+                        alert('❌ Ошибка импорта');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function showHistory() {
+            if (history.length === 0) {
+                alert('История сделок пуста');
+                return;
+            }
+
+            let html = '<h3>История сделок:</h3><table style="width: 100%; font-size: 11px;">';
+            html += '<tr><th>Дата</th><th>Монета</th><th>Тип</th><th>Цена</th><th>Кол-во</th><th>Сумма</th><th>P&L</th></tr>';
+            
+            history.forEach(h => {
+                const date = new Date(h.date).toLocaleString('ru-RU');
+                const pnlColor = h.pnl >= 0 ? '#008000' : '#FF0000';
+                html += `<tr>
+                    <td>${date}</td>
+                    <td>${h.symbol}</td>
+                    <td>${h.type === 'buy' ? '🟢 Покупка' : '🔴 Продажа'}</td>
+                    <td>$${h.price.toFixed(4)}</td>
+                    <td>${h.quantity}</td>
+                    <td>$${h.amount.toFixed(2)}</td>
+                    <td style="color: ${pnlColor};">${h.pnl ? (h.pnl >= 0 ? '+' : '') + '$' + h.pnl.toFixed(2) : '—'}</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            
+            const win = window.open('', 'История', 'width=800,height=600');
+            win.document.write(html);
+        }
+
+        function showSettings() {
+            alert('Настройки:\n\n' +
+                  `Депозит: $${SETTINGS.deposit}\n` +
+                  `Риск на сделку: ${SETTINGS.riskPerTrade}%\n\n` +
+                  'Уровни фиксации:\n' +
+                  SETTINGS.levels.map(l => `+${l.pct}%: продать ${l.sell}%`).join('\n'));
+        }
+
+        // Закрытие модальных окон
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>
-
