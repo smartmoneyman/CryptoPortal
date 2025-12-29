@@ -1,135 +1,90 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Crypto Dashboard</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: Inter, Segoe UI, Arial, sans-serif;
-    background: #0f1220;
-    color: #fff;
-}
-
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 24px;
-}
-
-h1 {
-    font-size: 26px;
-    margin-bottom: 20px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-}
-
-.card {
-    background: linear-gradient(180deg, #1a1f3c, #141832);
-    border-radius: 14px;
-    padding: 18px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-}
-
-.card .label {
-    font-size: 12px;
-    opacity: 0.7;
-    margin-bottom: 6px;
-}
-
-.card .value {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.positive { color: #32d583; }
-.negative { color: #ff6b6b; }
-
-.footer {
-    margin-top: 24px;
-    font-size: 12px;
-    opacity: 0.6;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>Dashboard | Crypto Command Center</title>
+  <link rel="stylesheet" href="dashboard.css" />
 </head>
-
 <body>
-<div class="container">
-    <h1>📊 Dashboard</h1>
 
-    <div class="grid">
-        <div class="card"><div class="label">Positions</div><div class="value" id="positions">—</div></div>
-        <div class="card"><div class="label">Invested</div><div class="value" id="invested">—</div></div>
-        <div class="card"><div class="label">Current Value</div><div class="value" id="current">—</div></div>
-        <div class="card"><div class="label">Unrealized P&L</div><div class="value" id="unrealized">—</div></div>
-        <div class="card"><div class="label">Realized P&L</div><div class="value" id="realized">—</div></div>
-        <div class="card"><div class="label">Total P&L</div><div class="value" id="totalPnl">—</div></div>
-        <div class="card"><div class="label">ROI</div><div class="value" id="roi">—</div></div>
-        <div class="card"><div class="label">Portfolio Risk</div><div class="value" id="risk">—</div></div>
-    </div>
+<header class="topbar">
+  <h1>Dashboard</h1>
+  <button id="refreshBtn">Обновить данные</button>
+</header>
 
-    <div class="footer" id="updated">—</div>
-</div>
+<section class="kpi-grid">
+  <div class="kpi">
+    <span>Депозит</span>
+    <strong id="kpi-deposit">$0</strong>
+  </div>
+  <div class="kpi">
+    <span>Текущая стоимость</span>
+    <strong id="kpi-current">$0</strong>
+  </div>
+  <div class="kpi">
+    <span>Реализовано</span>
+    <strong id="kpi-realized">$0</strong>
+  </div>
+  <div class="kpi danger">
+    <span>Риск портфеля</span>
+    <strong id="kpi-risk">0%</strong>
+  </div>
+</section>
 
-<script>
-const STORAGE_KEY = 'crypto_portfolio_v1';
-const SETTINGS = { deposit: 10000 };
+<section class="grid-2">
+  <div class="panel">
+    <h2>🚀 ТОП прибыльные</h2>
+    <table id="top-winners">
+      <thead>
+        <tr>
+          <th>Монета</th>
+          <th>Цена</th>
+          <th>P&L %</th>
+          <th>Действие</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-function loadDashboard() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-        alert('Портфель не найден');
-        return;
-    }
+  <div class="panel alert">
+    <h2>⚠️ Критичные позиции</h2>
+    <table id="critical">
+      <thead>
+        <tr>
+          <th>Монета</th>
+          <th>Цена</th>
+          <th>P&L %</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
 
-    const data = JSON.parse(raw);
-    const portfolio = data.portfolio || [];
-    const history = data.history || [];
+<section class="grid-2">
+  <div class="panel">
+    <h2>🌍 Market Overview</h2>
+    <ul class="market">
+      <li>BTC: <strong>$94,250</strong></li>
+      <li>ETH: <strong>$3,410</strong></li>
+      <li>Fear & Greed: <strong>52</strong></li>
+      <li>BTC Dominance: <strong>58.3%</strong></li>
+    </ul>
+  </div>
 
-    let invested = 0;
-    let current = 0;
+  <div class="panel">
+    <h2>🔥 Горячие сигналы</h2>
+    <ul id="signals">
+      <li class="buy">RENDER — BUY</li>
+      <li class="buy">FTM — BUY</li>
+      <li class="fix">PIPPIN — FIX +816%</li>
+      <li class="sell">TNSR — CLOSE</li>
+    </ul>
+  </div>
+</section>
 
-    portfolio.forEach(c => {
-        invested += c.entry * c.quantity;
-        current += c.current * c.quantity;
-    });
-
-    const unrealized = current - invested;
-    const realized = history.reduce((s, h) => s + (h.pnl || 0), 0);
-    const total = unrealized + realized;
-    const roi = invested > 0 ? (total / invested) * 100 : 0;
-    const risk = invested / SETTINGS.deposit * 100;
-
-    set('positions', portfolio.length);
-    set('invested', `$${invested.toFixed(2)}`);
-    set('current', `$${current.toFixed(2)}`);
-    set('unrealized', format(unrealized));
-    set('realized', format(realized));
-    set('totalPnl', format(total));
-    set('roi', `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%`);
-    set('risk', `${risk.toFixed(1)}%`);
-
-    document.getElementById('updated').textContent =
-        `Last update: ${new Date(data.updatedAt).toLocaleString()}`;
-}
-
-function set(id, value) {
-    document.getElementById(id).innerHTML = value;
-}
-
-function format(v) {
-    return `<span class="${v >= 0 ? 'positive' : 'negative'}">
-        ${v >= 0 ? '+' : ''}$${v.toFixed(2)}
-    </span>`;
-}
-
-window.onload = loadDashboard;
-</script>
+<script src="dashboard.js"></script>
 </body>
 </html>
