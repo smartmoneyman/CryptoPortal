@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Analytics</title>
+<link rel="stylesheet" href="./css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h1>📈 Analytics</h1>
+
+<ul>
+  <li>Total Trades: <b id="a-trades"></b></li>
+  <li>Winrate: <b id="a-winrate"></b></li>
+  <li>Expectancy: <b id="a-exp"></b></li>
+  <li>Max DD: <b id="a-dd"></b></li>
+</ul>
+
+<h3 id="edge"></h3>
+
+<canvas id="equityChart"></canvas>
+<canvas id="ddChart"></canvas>
+<canvas id="pnlChart"></canvas>
+
+<script type="module" src="./js/analytics-v2.js"></script>
+</body>
+</html>
 
